@@ -1,16 +1,16 @@
-#Download DotNet 
-#ensure latest which is net8.0
+-Download DotNet 
+-ensure latest which is net8.0
 https://dotnet.microsoft.com/download
 
-#Add Package
+-Add Package
 dotnet add package Microsoft.Playwright
 
-#Build 
+-Build 
 dotnet build
 
-#Get Browser Installation
-#Windows powershell
+-Get Browser Installation
+-Windows powershell
 powershell ./bin/Debug/net8.0/playwright.ps1 install
 
-#Linux bash
+-Linux bash
 bash ./bin/Debug/net8.0/playwright.sh install
