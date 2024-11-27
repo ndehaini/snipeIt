@@ -24,11 +24,11 @@ dotnet run
 #### Linux
 ##Beware  
 #Not ideal to run on linux  
-# .net8 and Playwright are fragmented on ubuntu(24) where I tested this program in a headless setup.  I needed to install powershell in my wsl to get it working.  
+#.net8 and Playwright are fragmented on ubuntu(24) where I tested this program in a headless setup.  I needed to install powershell in my wsl to get it working.  
 #if you want run on linux then:  
 
-#Download .net 8 SDK on your distro
-#Install Powershell 
+#Download .net 8 SDK on your distro  
+#Install Powershell  
 #add Playwright package  
 dotnet add package Microsoft.Playwright  
 
@@ -36,7 +36,7 @@ dotnet add package Microsoft.Playwright
 dotnet build  
 
 #Run playwright.ps1  
-pwsh ./bin/Debug/netx/playwright.ps1 install  
+sudo pwsh ./bin/Debug/net8.0/playwright.ps1 install-deps  
 
 #Run Program  
 dotnet run  
