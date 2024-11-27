@@ -18,14 +18,25 @@ class Program
 
     public static async Task Main(string[] args)
     {
-        cw("Hello World");
-        await Init();    
-        await Login();  
-
-        await CreateAsset();
-        await Verify();
-        if(browser != null)
-            await browser.CloseAsync();
+        cw("DEBUG ON");
+        try
+        {
+            await Init();    
+            await Login();  
+            await CreateAsset();
+            await Verify();
+            if(browser != null)
+                await browser.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An unexpected error occurred.");
+            Console.WriteLine($"Details: {ex.Message}");            
+        }
+        finally
+        {
+            Console.WriteLine("\n----Program End----");
+        }
     }
     
     private static void cw(string msg)
