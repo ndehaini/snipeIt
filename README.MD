@@ -35,6 +35,8 @@ dotnet add package Microsoft.Playwright
 #Build the code  
 dotnet build  
 
+#Set run_headless to true in program.cs
+
 #Run playwright.ps1  
 sudo pwsh ./bin/Debug/net8.0/playwright.ps1 install-deps  
 
