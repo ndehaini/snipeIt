@@ -1,38 +1,75 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿//#define DEBUG_MODE  //  Define a compilation symbol for getting debug info
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 
+
 class Program
-{
-    const string snipe_url  = "https://demo.snipeitapp.com/login";
-    const string asset_name = "X7 Apple macbook Pro 13";
-    const string asset_tag  = "MBP13-X588";
-    const string serial_no  = "XA235219JI";
+{ 
+    const bool run_headless = false;
+    private static string asset_name = "Apple macbook Pro 13";
+    private static string asset_tag  = "";
+    private static string serial_no  = "";
 
 
-    private static IPage? page;      // Type for the page
-    private static IBrowser? browser; // Type for the browser
+    private static IPage? page;      
+    private static IBrowser? browser; 
+
+    public static async Task Main(string[] args)
+    {
+        cw("Hello World");
+        await Init();    
+        await Login();  
+
+        await CreateAsset();
+        await Verify();
+        if(browser != null)
+            await browser.CloseAsync();
+    }
+    
     private static void cw(string msg)
     {
+        #if DEBUG_MODE
         Console.WriteLine(msg);
+        #endif
+    }
+
+    private static string RandomString(int length)
+    {
+        Random random = new Random();
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 
     private static async Task Init()
     {
+        // Randomize the asset_tag, Serial and the Model no so we don't get errors
+        asset_tag = string.Format("{0}-{1}", RandomString(7), RandomString(5));
+        serial_no = RandomString(20);
+        asset_name = string.Format("{0}:{1}", asset_name, RandomString(5));
+        cw("asset_tag: "+ asset_tag);
+        cw("serial_no: " + serial_no);
+        cw("asset_name: " + asset_name);
+
         var playwright = await Playwright.CreateAsync();   // Playwright is of type Playwright
-        browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = false, SlowMo = 1000 });  // Browser is of type IBrowser
+        browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = run_headless, SlowMo = 1000 });  // Browser is of type IBrowser
         // Create a new page
         page = await browser.NewPageAsync();  // Page is of type IPage
+        Console.WriteLine("Headless Mode: {0}", run_headless);
     }
 
     private static async Task Login()
     {
         if((page == null) || (browser == null))
+        {
+            Console.WriteLine("Page or browser Objects are not instantiated.  Cannot proceed");
             return;
+        }
 
         cw("Logging in. go to url");
-        await page.GotoAsync(snipe_url);
+        await page.GotoAsync("https://demo.snipeitapp.com/login");
         cw("fill user name");
         await page.FillAsync("input[name='username']", "admin");
         cw("fill password");
@@ -43,8 +80,12 @@ class Program
 
     private static async Task CreateAsset()
     {
+        Console.WriteLine("Creating Asset");
         if((page == null) || (browser == null))
+        {
+            Console.WriteLine("Page or browser Objects are not instantiated.  Cannot proceed");
             return;
+        }
 
         cw("Get hardware route");
         await page.WaitForSelectorAsync("a[href='https://demo.snipeitapp.com/hardware']");
@@ -62,10 +103,10 @@ class Program
         cw("wait for dropdown");
         await page.WaitForSelectorAsync(".select2-dropdown .select2-results", new PageWaitForSelectorOptions { Timeout = 5000 });
         cw("select company");
-        await page.Locator(".select2-dropdown .select2-results ").Nth(0).ClickAsync();
+        await page.Locator(".select2-dropdown .select2-results ").Nth(0).ClickAsync();      // Get the first item in the list. 
         cw("Add Asset tag and serial");         
-        await page.FillAsync("input[name='asset_tags[1]']", asset_tag);
-        await page.FillAsync("input[name='serials[1]']", serial_no);
+        await page.FillAsync("input[name='asset_tags[1]']", asset_tag);                     // Add the asset_tag 
+        await page.FillAsync("input[name='serials[1]']", serial_no);                        // Add the serial number
         cw("Add model ID");
         cw("Open Modal Form");
         await page.Locator("a[href='https://demo.snipeitapp.com/modals/model']").ClickAsync();
@@ -108,14 +149,19 @@ class Program
         cw("submit new asset record");
         await page.Locator("button.btn.btn-primary.pull-right[style*='margin-left:5px']").ClickAsync();
 
-        Console.WriteLine("Successfully Created a new Asset");
+        Console.WriteLine("Successfully Created a new Asset \nAsset Name: {0}\nAsset Tag: {1}\nSerial No: {2}", asset_name, asset_tag, serial_no);
     }
 
     private static async Task Verify()
     {
+        Console.WriteLine("\nVerifying Asset");
         if((page == null) || (browser == null))
+        {
+            Console.WriteLine("Page or browser Objects are not instantiated.  Cannot proceed");
             return;
-        cw("Verifying asset");
+        }
+
+
         cw("Go to the hardware route with a search parameter for a unique asset tag");
         string url  = string.Format("https://demo.snipeitapp.com/hardware?search={0}", asset_tag);
         await page.GotoAsync(url);
@@ -136,7 +182,7 @@ class Program
             return;
         }
 
-        Console.WriteLine("Asset Found.");
+        Console.WriteLine("Asset Found in page.");
 
         // Navigate to asset page
         cw("Get asset name");
@@ -176,15 +222,4 @@ class Program
             : "History validation failed.");        
     }
 
-    public static async Task Main(string[] args)
-    {
-        cw("Hello World");
-        await Init();    
-        await Login();  
-
-        await CreateAsset();
-        await Verify();
-        if(browser != null)
-            await browser.CloseAsync();
-    }
 }
